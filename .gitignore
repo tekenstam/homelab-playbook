@@ -1,2 +1,4 @@
-# Ansible inventory file might be considered sensitive
-inventory
+.vscode/
+
+# Ansible inventory files might be considered sensitive
+inventory*

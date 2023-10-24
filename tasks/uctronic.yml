@@ -1,0 +1,56 @@
+---
+# Rules for enabling UCTRONIC screen and power button
+# for Pis racked in UCTRONICS Pi Rack Pro
+- name: UCTRONIC - Get I2C status
+  ansible.builtin.command: "raspi-config nonint get_i2c"
+  register: i2c_status
+  changed_when: false
+
+# - name: UCTRONIC - Print I2C status
+#   ansible.builtin.debug:
+#     msg: "I2C status is: {{ i2c_status.stdout }}"
+
+- name: UCTRONIC - Enable I2C
+  ansible.builtin.command: "raspi-config nonint do_i2c 0"
+  when: i2c_status.stdout != '0'
+
+- name: UCTRONIC - Set 'dtparam' in /boot/config.txt
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    regexp: 'dtparam=i2c_arm'
+    line: 'dtparam=i2c_arm=on,i2c_arm_baudrate=400000'
+    insertafter: 'dtparam'
+
+- name: UCTRONIC - Set 'dtoverlay' in /boot/config.txt
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    regexp: 'dtoverlay=gpio-shutdown'
+    line: 'dtoverlay=gpio-shutdown,gpio_pin=4,active_low=1,gpio_pull=up'
+    insertafter: 'dtoverlay'
+
+# - name: Touch a file, using symbolic modes to set the permissions (equivalent to 0644)
+#   ansible.builtin.file:
+#     path: /var/run/reboot-required
+#     state: touch
+#     mode: '0644'
+
+# - name: Disable I2C
+#   ansible.builtin.command: "raspi-config nonint do_i2c 1"
+#   when: (I2C == false) and (i2c_status.stdout != '1')
+
+- name: UCTRONIC - Download display binary
+  ansible.builtin.get_url:
+    url: https://github.com/tekenstam/uctronics-pi-rack-pro/releases/download/v0.0.1/display_Linux_arm64
+    dest: /usr/local/bin/display
+    mode: '0755'
+
+- name: UCTRONIC - Add display startup to rc.local
+  ansible.builtin.lineinfile:
+    path: /etc/rc.local
+    regexp: '^/usr/local/bin/display'
+    line: '/usr/local/bin/display &'
+    insertbefore: 'exit 0'
+
+- name: UCTRONIC - Reboot if required
+  ansible.builtin.reboot:
+  when: i2c_status.stdout != '0'

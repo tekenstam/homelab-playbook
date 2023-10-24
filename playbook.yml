@@ -1,0 +1,55 @@
+---
+- name: Update pi hosts
+  hosts: pi
+  become: true
+
+  pre_tasks:
+    - name: Include config override file, if it exists.
+      ansible.builtin.include_vars: "{{ item }}"
+      with_fileglob:
+        - config.yml
+      tags: ['always']
+
+    # - ansible.builtin.import_tasks:
+    #   - tasks/init.yml
+
+
+  tasks:
+    - name: Ping my hosts
+      ansible.builtin.ping:
+
+    # - name: Print message
+    #   ansible.builtin.debug:
+    #     msg: Hello world
+
+    # - name: Upgrade the OS dist (apt-get dist-upgrade)
+    #   ansible.builtin.apt:
+    #     upgrade: dist
+
+    # - name: Ensure dependencies are installed.
+    #   ansible.builtin.apt:
+    #     name:
+    #       - curl
+    #       - openssh-server
+    #       - openssh-client
+    #       - libffi-dev
+    #       - libssl-dev
+    #       - python-backports.ssl-match-hostname
+    #       - cron
+    #     state: present
+
+
+# - name: Enable I2C on Uctronics hosts
+#   hosts: uctronic
+#   become: true
+#   tags:
+#     - uctronic
+
+#   tasks:
+
+    # - ansible.builtin.debug:
+    #     msg: task1
+
+    - name: Apply conditional to all imported tasks
+      ansible.builtin.import_tasks: tasks/uctronic.yml
+      when: uctronic is defined

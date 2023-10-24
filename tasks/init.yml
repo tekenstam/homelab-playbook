@@ -1,0 +1,13 @@
+---
+# Run the equivalent of 'apt-get update'
+- name: Update apt cache if needed.
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 86400
+
+# Run the equivalent of 'apt-get dist-upgrade'
+- name: Update apt-cache and do dist upgrade
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: dist
